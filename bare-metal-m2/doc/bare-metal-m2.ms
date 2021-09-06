@@ -26,6 +26,12 @@ references:
 .C
 probably other websites were used as well, apologies if these are absent
 .bp
+.T
+Install dependancies (on Debian Buster)
+.B-EXAMPLE-BEGIN
+.CMD sudo apt install build-essential git gcc g++ flex groff texinfo
+.B-EXAMPLE-END
+.bp
 .B
 the following has been tested under Debian Buster building on an amd64 machine
 .B-EXAMPLE-BEGIN
