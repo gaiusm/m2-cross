@@ -1,7 +1,7 @@
 .T
 Modula-2 running on bare metal on the Raspberry Pi-4
 .B
-here are some instructions and simple test programs which demostrate
+here are some instructions and simple test programs which demonstrate
 Modula-2 running on the Raspberry Pi-4
 .B
 there are a number of steps required:
@@ -50,7 +50,7 @@ note currently this location is hardcoded
 .T
 The bare metal software
 .B
-there are four objects which will be linked to produce the baremetal
+there are four objects which will be linked to produce the bare metal
 application
 .C
 .PRG armc-08-start.S
@@ -158,4 +158,4 @@ develop
 another (much quicker) method is to configure a tftpserver to serve
 the
 .PRG kernel8.img
-file and configure the Rasbperry Pi-4 to boot using tftp
+file and configure the Raspberry Pi-4 to boot using tftp
