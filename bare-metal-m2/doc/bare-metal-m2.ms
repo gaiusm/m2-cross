@@ -159,3 +159,157 @@ another (much quicker) method is to configure a tftpserver to serve
 the
 .PRG kernel8.img
 file and configure the Raspberry Pi-4 to boot using tftp
+.bp
+.T
+Turning on an external LED
+.B
+the code shown below will pulse
+.PRG GPIO4
+(pin7) lo / high
+.C
+one simple use for the program is to pulse a LED
+.C
+the trivial circuit requires a current limiting resistor (330 ohm)
+in series with the LED
+.C
+.PRG <PIN7>
+connected to the registor which is connected to the long leg of the LED
+.C
+the short leg of the LED is connected to GND
+.PRG <PIN14>
+.B-EXAMPLE-BEGIN
+
+GPIO4        330 ohm    led    GND
+<PIN7> ------/\e/\e/\e/----|>|---<PIN14>
+                    long  short
+.B-EXAMPLE-END
+.bp
+.T
+ledtest2 program
+.B-EXAMPLE-BEGIN
+.ps -2
+.vs -2
+MODULE ledtest2 ;
+
+(* Flash an offboard LED of the RPI4 using Modula-2
+   You will need to install an LED and resister between PIN 7
+   (GPIO4) and ground.
+   Author:  Gaius Mulley   31/8/2021.  *)
+
+FROM SYSTEM IMPORT ADDRESS ;
+
+CONST
+   GPIO_BASE    = 0FE200000H ;
+   GPIO_MAX     = 32 ;
+   GPIO_GPFSEL  = 4 ;
+   LED_GPFBIT   = 6 ;
+   LED_GPIO_BIT = 10 ;
+   LED_GPCLR0   = 10 ;
+   LED_GPSET0   = 7 ;
+   LED_GPCLR1   = 11 ;
+   LED_GPSET1   = 8 ;
+.B-EXAMPLE-END
+.bp
+.B-EXAMPLE-BEGIN
+.ps -2
+.vs -2
+VAR
+   gpio[GPIO_BASE] : ARRAY [0..GPIO_MAX] OF BITSET ;
+
+PROCEDURE inp_gpio (pin: CARDINAL) ;
+VAR
+   value   : BITSET ;
+   position: CARDINAL ;
+BEGIN
+   position := (pin MOD 10) * 3 ;
+   short_delay ;
+   value := gpio[pin DIV 10] ;
+   EXCL (value, position) ;
+   EXCL (value, position + 1) ;
+   EXCL (value, position + 2) ;
+   short_delay ;
+   gpio[pin DIV 10] := value
+END inp_gpio ;
+.B-EXAMPLE-END
+.bp
+.B-EXAMPLE-BEGIN
+.ps -2
+.vs -2
+PROCEDURE out_gpio (pin: CARDINAL) ;
+VAR
+   value   : BITSET ;
+   position: CARDINAL ;
+BEGIN
+   position := (pin MOD 10) * 3 ;
+   short_delay ;
+   value := gpio[pin DIV 10] ;
+   INCL (value, position) ;
+   EXCL (value, position + 1) ;
+   EXCL (value, position + 2) ;
+   short_delay ;
+   gpio[pin DIV 10] := value
+END out_gpio ;
+.B-EXAMPLE-END
+.bp
+.B-EXAMPLE-BEGIN
+.ps -2
+.vs -2
+PROCEDURE short_delay ;
+CONST
+   delay = 10000 ;
+VAR
+   i: CARDINAL ;
+BEGIN
+   FOR i := 0 TO delay DO
+      ASM VOLATILE ("nop")
+   END
+END short_delay ;
+.B-EXAMPLE-END
+.bp
+.B-EXAMPLE-BEGIN
+.ps -2
+.vs -2
+PROCEDURE waste_time ;
+CONST
+   delay = 500000 ;
+VAR
+   i: CARDINAL ;
+BEGIN
+   FOR i := 0 TO delay DO
+      ASM VOLATILE ("nop")
+   END
+END waste_time ;
+.B-EXAMPLE-END
+.bp
+.B-EXAMPLE-BEGIN
+.ps -2
+.vs -2
+CONST
+   LED_EXTERNAL_BIT = 4 ;  (* pin 7  *)
+
+BEGIN
+   (* Set this bit to TRUE to enable the LED as an output.  *)
+   inp_gpio (LED_EXTERNAL_BIT) ;
+   out_gpio (LED_EXTERNAL_BIT) ;
+   LOOP
+      (* set the bit (led on).  *)
+      gpio[LED_GPSET0] := BITSET {LED_EXTERNAL_BIT} ;
+      waste_time ;
+      (* clear the bit (led off).  *)
+      gpio[LED_GPCLR0] := BITSET {LED_EXTERNAL_BIT} ;
+      waste_time
+   END
+END ledtest2.
+.B-EXAMPLE-END
+.bp
+.T
+Building ledtest2
+.B
+the
+.PRG kernel.img
+containing the
+.PRG ledtest2
+binary can be built using the following command:
+.B-EXAMPLE-BEGIN
+.CMD ./buildm2 ledtest2
+.B-EXAMPLE-END
