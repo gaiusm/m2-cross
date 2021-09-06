@@ -1,0 +1,56 @@
+SUFFIXES = .c .mod .def .o .obj .lo .a .m .mxm
+
+SHELL=/bin/bash
+
+prefix= @prefix@
+datarootdir= @datarootdir@
+srcdir= @srcdir@
+mandir= @mandir@
+exec_prefix=@exec_prefix@
+bindir= @bindir@
+INSTALL_PROGRAM = install
+GCCVERSION=12.0.0
+
+DISTFILES = Makefile.in configure.ac configure \
+            README.md version.c COPYING INSTALL \
+            shell bare-metal-m2 gnu-linux
+
+all: build documentation
+
+build: force
+	@echo "this package is currently hard coded to install into $(HOME)/opt-gcc-12"
+	@echo "press any key to destroy $(HOME)/opt-gcc-12 or ^C to abort"
+	read ans
+	bash $(srcdir)/shell/build-cross-gcc.sh $(srcdir)
+
+help: force
+	@echo "this package knows about:"
+	@echo "make help"
+	@echo "make build # builds and installs the cross tool chain"
+	@echo "make documentation  # produces some slides about the tool chain process"
+	@echo "make all # build and install tool chain and build documentation"
+
+install: force
+	@echo "this package is currently hard coded to install into $(HOME)/opt-gcc-12"
+
+documentation: force
+	groff -mwww -mgp -M$(srcdir)/tmac $(srcdir)/bare-metal-m2/doc/bare-metal-m2.ms > bare-metal-m2.ps
+	ps2pdf bare-metal-m2.ps bare-metal-m2.pdf
+	groff -Thtml -mwww -mgp -M$(srcdir)/tmac $(srcdir)/bare-metal-m2/doc/bare-metal-m2.ms > bare-metal-m2.html
+
+release: force
+	pwd
+	echo m2-cross-`sed -e '/version_string/!d' \
+          -e 's/[^0-9.]*\([0-9.]*\).*/\1/' -e q $(srcdir)/version.c` > .fname
+	-rm -rf `cat .fname`
+	mkdir `cat .fname`
+	dst=`cat .fname`; for f in $(DISTFILES); do \
+           cp -rp $(srcdir)/$$f $$dst/$$f ; \
+        done
+	tar --gzip -chf `cat .fname`.tar.gz `cat .fname`
+	-rm -rf `cat .fname` .fname
+
+clean: force
+	$(RM) -rf build-cross-chain
+
+force:
