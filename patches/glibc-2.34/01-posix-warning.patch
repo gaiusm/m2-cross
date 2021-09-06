@@ -1,0 +1,11 @@
+--- a/glibc-2.34/posix/regex.h	2021-09-01 05:43:31.489657359 +0100
++++ b/glibc-2.34/posix/regex.h	2021-09-01 21:27:29.484108398 +0100
+@@ -656,7 +656,7 @@
+ 		    const char *_Restrict_ __String, size_t __nmatch,
+ 		    regmatch_t __pmatch[_Restrict_arr_],
+ 		    int __eflags)
+-    __attr_access ((__write_only__, 4, 3));
++    __attr_access ((__read_write__, 4, 3));
+ 
+ extern size_t regerror (int __errcode, const regex_t *_Restrict_ __preg,
+ 			char *_Restrict_ __errbuf, size_t __errbuf_size)

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+#
+#  $1 is the modulename
+#
+
+export PATH=${HOME}/opt-gcc-12/cross/bin:$PATH
+
+GCC_OPTIONS="-nostartfiles -nostdlib -ffreestanding -mgeneral-regs-only"
+GM2_OPTIONS="-O2"
+
+aarch64-linux-as -c -o armc-08-start.o armc-08-start.S
+
+aarch64-linux-gcc ${GCC_OPTIONS} -g -c -o armc-08-cstartup.o armc-08-cstartup.c
+
+aarch64-linux-gm2 ${GM2_OPTIONS} -flibs=min,pim -c -fmakelist -fno-exceptions $1.mod
+aarch64-linux-gm2 ${GM2_OPTIONS} -flibs=min,pim -c -fmakeinit -fno-exceptions $1.mod
+aarch64-linux-gcc ${GCC_OPTIONS} -x c -g -c -o $1_m2.o $1_m2.cpp
+
+aarch64-linux-gm2 ${GM2_OPTIONS} -flibs=min,pim -c -g -fno-exceptions $1.mod
+aarch64-linux-gm2 ${GM2_OPTIONS} -flibs=min,pim -S -g -fno-exceptions $1.mod
+
+aarch64-linux-ld -T linker.ld \
+    -o kernel.elf armc-08-start.o armc-08-cstartup.o $1.o $1_m2.o -g \
+    -L${HOME}/opt-gcc-12/cross/lib/gcc/aarch64-linux/12.0.0/m2/m2min -lm2min
+
+aarch64-linux-objcopy kernel.elf -O binary kernel.img
+sudo cp kernel.img /srv/tftp/2e4fd92a/kernel8.img

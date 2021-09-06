@@ -1,0 +1,14 @@
+#!/bin/bash
+
+export PATH=${HOME}/opt-gcc-12/cross/bin:$PATH
+
+aarch64-linux-gcc -nostartfiles -nostdlib -ffreestanding -mgeneral-regs-only -o ledtest2.o -c ledtest2.c
+
+aarch64-linux-ld -T linker.ld -o kernel.elf armc-08-start.o armc-08-cstartup.o \
+ ledtest2.o ledtest2_m2.o -g \
+ -L${HOME}/opt-gcc-12/cross/lib/gcc/aarch64-linux/12.0.0/m2/m2min \
+ -lm2min
+
+${HOME}/opt-gcc-12/cross/bin/aarch64-linux-objcopy kernel.elf -O binary kernel.img
+
+sudo cp kernel.img /srv/tftp/2e4fd92a/kernel8.img

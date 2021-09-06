@@ -1,0 +1,771 @@
+.\" -*- nroff -*-
+.ig
+
+gp.tmac
+
+Copyright (C) 2002-2020
+Free Software Foundation, Inc.
+     Written by Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+This file is part of groff.
+
+groff is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+groff is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with groff; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+..
+.defcolor darkred rgb 0.65f 0.1f 0.2f
+.defcolor darkgreen rgb 0.1f 0.4f 0.2f
+.defcolor darkblue rgb 0.1f 0.2f 0.6f
+.defcolor darkyellow rgb 1.0f 0.85f 0.0f
+.defcolor darkgrey rgb 0.66f 0.66f 0.66f
+.defcolor title_background rgb 0.4f 0.4f 0.4f
+.defcolor title_colour rgb 1.0f 1.0f 1.0f
+.mso www.tmac
+.mso pspic.tmac
+.
+.
+.de LANDSCAPE
+.   wh -1i
+.   nr LL 8.5i
+.   ll 8.5i
+.   pl 7.5i
+.   wh -1i FOOTER
+..
+.
+.\" BOX - inspired by the BOX macro in gtroff.info (thanks Werner)
+.
+.de BOX
+.ce 0
+.C1
+.ce 999
+.nf
+.br
+.TITLE
+.br
+.fi
+.ce 0
+.sp -1
+.C2
+..
+.ds down \v'-.7m\s0+.9m'
+.ds up   \v'-.9m\s'\En[.s]*7u/10u'+.7m'
+.if !\n(.g .ab The gp macro requires groff.
+.\" slide macros
+.nr html@level 0
+.\"
+.\" the level character indicator
+.\"
+.ie r ps4html \{\
+.   ds LEVEL1   \s12\(bu\f[CR]  \f1\c
+.   ds LEVEL2   \s12\(sq\f[CR]  \f1\c
+.   ds LEVEL3   \s12\(ci\f[CR]  \f1\c
+.\}
+.el \{\
+.   ds LEVEL1   \M[darkred]\D'P .5m 0m 0m -.5m -.5m 0m 0m .5m'\s[20]\f[CR]\M[]   \f1\c
+.   ds LEVEL2   \M[darkgrey]\D'P .5m 0m 0m -.5m -.5m 0m 0m .5m'\s[20]\f[CR]\M[]   \f1\c
+.   ds LEVEL3   \M[darkblue]\D'P .5m 0m 0m -.5m -.5m 0m 0m .5m'\s[20]\f[CR]\M[]   \f1\c
+.\}
+.nr slide     0
+.\"
+.\" reset point size
+.\"
+.de RT-PS
+.   ie '\*(.T'html' \{\
+.      ps 10
+.      vs 12
+.   \}
+.   el \{\
+.      br
+.      ie r ps4html \{\
+.         ps 12
+.         vs 14
+.      \}
+.      el \{\
+.         ps 20
+.         vs 26
+.      \}
+.      na
+.   \}
+.   nh
+..
+.\"
+.\" RT-PS-FACE - reset point size and face
+.\"
+.de RT-PS-FACE
+.   RT-PS
+.   ft 1
+..
+.de PUSH-LEVEL
+.   nr html@level  \\n[html@level]+1
+.   if \\n[html@level]>3 \{\
+.       @error "too many levels of indentation (\\n[html@level])"
+.   \}
+.   ie (\\n[html@level] == 1) \{\
+.       ds HTML-STRING  "\\*[HTML-STRING]<ul type=disc>"
+.   \}
+.   el \{\
+.       ie (\\n[html@level] == 2) \{\
+.       ds HTML-STRING  "\\*[HTML-STRING]<ul type=square>"
+.       \}
+.       el \{\
+.       ds HTML-STRING  "\\*[HTML-STRING]<ul type=circle>"
+.           nr html@level 3
+.       \}
+.   \}
+..
+.de POP-LEVEL
+.    nr html@level  \\n[html@level]-1
+.    HTML  "</ul>"
+..
+.de GOTO-LEVEL
+.   ds HTML-STRING ""
+.   while (\\$1)<(\\n[html@level]) \{\
+.      POP-LEVEL
+.   \}
+.   while (\\$1)>(\\n[html@level]) \{\
+.      PUSH-LEVEL
+.   \}
+..
+.\" error macro copied from tmac.s
+.de @error
+.tm \\n(.F:\\n(.c: macro error: \\$*
+..
+.\" start boxed text also copied from tmac.s and modified
+.de B1
+.br
+.HTML-IMAGE
+.di par*box-div
+.nr \\n[.ev]:li +1n
+.nr \\n[.ev]:ri +1n
+.nr par*box-in \\n[.in]
+.\" remember what 1n is, just in case the point size changes
+.nr par*box-n 1n
+.in +1n
+.ll -1n
+.lt -1n
+.ti \\n[par*box-in]u+1n
+..
+.de @div-end!par*box-div
+.B2
+..
+.\" end boxed text
+.\" Postpone the drawing of the box until we're in the top-level diversion,
+.\" in case there's a footnote inside the box.
+.de B2
+.ie '\\n(.z'par*box-div' \{\
+.	br
+.	if \n[.V]>.25m .sp
+.	di
+.	if \n[.V]>.25m .sp
+.       if \\n[BNUMBER]>1 .ds@need \\n[dn]
+.	par*box-mark-top
+.	ev nf
+.	par*box-div
+.	ev
+.	nr \\n[.ev]:ri -\\n[par*box-n]
+.	nr \\n[.ev]:li -\\n[par*box-n]
+.	in -\\n[par*box-n]u
+.	ll +\\n[par*box-n]u
+.	lt +\\n[par*box-n]u
+.	par*box-draw \\n[.i]u \\n[.l]u-(\\n[.H]u==1n*1n)
+.\}
+.el .@error B2 without B1
+.HTML-IMAGE-END
+..
+.de par*box-mark-top
+.ie '\\n[.z]'' \{\
+.	rs
+.	mk par*box-top
+.\}
+.el \!.par*box-mark-top
+..
+.de par*box-draw
+.ie '\\n[.z]'' \{\
+.	nr par*box-in \\n[.i]
+.	nr par*box-ll \\n[.l]
+.	nr par*box-vpt \\n[.vpt]
+.	nr par*box-ad \\n[.j]
+.	ad l
+.	vpt 0
+.	in \\$1
+.	ll \\$2
+\v'-1v+.25m'\
+\D'l (u;\\n[.l]-\\n[.i]) 0'\
+\D'l 0 |\\n[par*box-top]u'\
+\D'l -(u;\\n[.l]-\\n[.i]) 0'\
+\D'l 0 -|\\n[par*box-top]u'
+.	br
+.	sp -1
+.	in \\n[par*box-in]u
+.	ll \\n[par*box-ll]u
+.	vpt \\n[par*box-vpt]
+.	ad \\n[par*box-ad]
+.\}
+.el \!.par*box-draw \\$1 \\$2
+..
+.de ds@need
+.if '\\n(.z'' \{\
+.	while \\n[.t]<=(\\$1)&(\\n[nl]>\\n[pg@header-bottom]) \{\
+.		rs
+'		sp \\n[.t]u
+.	\}
+.\}
+..
+.\" start boxed text also copied from tmac.s and modified
+.de C1
+.br
+.di par*box-div
+.nr \\n[.ev]:li +1n
+.nr \\n[.ev]:ri +1n
+.nr par*box-in \\n[.in]
+.\" remember what 1n is, just in case the point size changes
+.nr par*box-n 1n
+.in +1n
+.ll -1n
+.lt -1n
+.ti \\n[par*box-in]u+1n
+..
+.\" end boxed text
+.\" Postpone the drawing of the box until we're in the top-level diversion,
+.\" in case there's a footnote inside the box.
+.de C2
+.br
+.di
+.nr par*box-top \\n[dn]u
+.in -\\n[par*box-n]u
+.ll +\\n[par*box-n]u
+.lt +\\n[par*box-n]u
+.par*box-fill \\n[.l]u-\\n[dl]u \\n[dl]u
+.ev nf
+.par*box-div
+.ev
+..
+.de par*box-fill
+.ie '\\n[.z]'' \{\
+.	nr par*box-in \\n[.i]
+.	nr par*box-ll \\n[.l]
+.	nr par*box-vpt \\n[.vpt]
+.	nr par*box-ad \\n[.j]
+.	ad l
+.	vpt 0
+.	in \\$1
+.	ll \\$2
+\v'-1v+.25m'\
+\M[title_background]\
+\D'P (u;\\n[.l]-\\n[.i]) 0 \
+     0 \\n[par*box-top]u \
+    -(u;\\n[.l]-\\n[.i]) 0\
+     0 -\\n[par*box-top]u'\
+\M[]
+.	br
+.	sp -1
+.	in \\n[par*box-in]u
+.	ll \\n[par*box-ll]u
+.	vpt \\n[par*box-vpt]
+.	ad \\n[par*box-ad]
+.\}
+.el \!.par*box-fill \\$1 \\$2
+..
+.\"
+.\" STUDENT  generate text for students, it will
+.\"          hide the text in HIDE-BEGIN HIDE-END
+.\"          blocks and replace it with a \\*[HIDDEN] symbol
+.\"
+.\"
+.\" if you are like KV then you might choose to
+.\" uncomment the .ds HIDDEN
+.\" below which will turn off the left hand pointer
+.\" indicating when students should copy..
+.\"
+.  ie '\*(.T'html' \{\
+.      ds HIDDEN <-
+.  \}
+.  el \{\
+.      ds HIDDEN \s20\(lh
+.  \}
+.ds HIDDEN
+.de STUDENT
+.   if !'\*(.T'html' .if !r ps4html .ds HIDE yes
+..
+.\"
+.\" LECTURER  generate text for lecturers, it will
+.\"           display the text in HIDEBEGIN HIDEEND
+.\"           and include a \\*[HIDDEN] symbol
+.\"
+.de LECTURER
+.  ds HIDE no
+..
+.\"
+.\" HIDE-BEGIN -
+.\"
+.de HIDE-BEGIN
+.  if !'\*(.T'html' \{\
+.      ie '\\*[HIDE]'yes' \{\
+.          ie '\\$1'' \{\
+.              nr HIDEGAP  0
+.          \}
+.          el \{\
+.              nr HIDEGAP  \\$1
+.          \}
+.          ds DOHIDE da
+.      \}
+.      el \{\
+.          ds DOHIDE br
+.      \}
+.      \\*[DOHIDE] NOWHERE
+.  \}
+..
+.\"
+.\" HIDE-END - terminate a HIDE-BEGIN
+.\"
+.de HIDE-END
+.  if !'\*(.T'html' \{\
+.      ie '\\*[HIDE]'yes' \{\
+.          da
+.          ie \\n[HIDEGAP] \{\
+.              sp (u;\\n[HIDEGAP]/2)
+.              if !'\\*[HIDDEN]'' \{\
+.\" was without space \h'((u;\\n[.l])-(u;\\n[.i])-(u;\w'\\*[HIDDEN]'))'\\*[HIDDEN]
+\h'((u;\\n[.l])-(u;\\n[.i])-(u;\w'\\*[HIDDEN]')-(u;\w' '))'\\*[HIDDEN]
+.              \}
+.              sp (u;\\n[HIDEGAP]/2)
+.          \}
+.          el \{\
+.              sp (u;\\n[dn]/2)
+.              if !'\\*[HIDDEN]'' \{\
+\h'((u;\\n[.l])-(u;\\n[.i])-(u;\w'\\*[HIDDEN]')-(u;\w' '))'\\*[HIDDEN]
+.              \}
+.              sp (u;\\n[dn]/2)
+.          \}
+.      \}
+.      el \{\
+.          if !'\\*[HIDDEN]'' \{\
+\h'((u;\\n[.l])-(u;\\n[.i])-(u;\w'\\*[HIDDEN]')-(u;\w' '))'\\*[HIDDEN]
+.          \}
+.      \}
+.  \}
+..
+.\"
+.\"  if student is enabled include $1 otherwise include $2
+.\"
+.de STUDENTPIC
+.  ie '\\*[HIDE]'yes' .so \\$1
+.  el .so \\$2
+..
+.de finish-topic
+.  br
+.  di
+.  fi
+.  if '\*(.T'html' \{\
+.ft 3
+.     TOPIC
+.ft 1
+.     DEVTAG-EO-TL
+.     br
+.     HR
+.  \}
+..
+.\"
+.\" finish-name
+.\"
+.de finish-name
+.  di
+.  fi
+..
+.\"
+.\" NAME authors name
+.\"
+.de NAME
+.  nf
+.  di AUTHOR
+.  it 1 finish-name
+..
+.\"
+.\"
+.\" TP topic definition.
+.\"
+.de TP
+.  nf
+.  di TOPIC
+.  DEVTAG-TL
+.  it 1 finish-topic
+..
+.\"
+.\" LOGO include groff logo on each slide
+.\"
+.de LOGO
+.  nr need-logo 1
+..
+.\"
+.\" NOLOGO remove the groff logo from subsequent slides
+.\"
+.de NOLOGO
+.  nr need-logo 0
+..
+.\" VS macro definition - start of a new slide
+.\" VS
+.de VS
+.   nr need-title 0
+.   in 0i
+.   ie '\*(.T'html' .GOTO-LEVEL 0
+.   el .CHECK-LOGO
+.   RT-PS-FACE
+..
+.de CHECK-HIDDEN-B
+.   if r hideb .if (\\n[hideb] == \\n[BNUMBER]) \{\
+.      if (\\n[hiding] == 0) \{\
+.          nr hiding 1
+.          da NOWHEREBC
+.      \}
+.   \}
+..
+.de CHECK-HIDDEN-C
+.   if r hidec .if (\\n[hidec] == \\n[CNUMBER]) \{\
+.      if (\\n[hiding] == 0) \{\
+.          nr hiding 1
+.          da NOWHEREBC
+.      \}
+.   \}
+..
+.de B
+.   CHECK-TITLE
+.   RT-PS-FACE
+.   ie '\*(.T'html' \{\
+.      GOTO-LEVEL 1
+.      END-INDENTATION
+.      HTML \\*[HTML-STRING]<li>
+.   \}
+.   el \{\
+.      nr BNUMBER +1
+.      sp .5i
+.      in .5i
+.      ti -.4i
+.      ti -(u;\w'\\*[LEVEL1]')
+\\*[LEVEL1]
+.      mk pg@header-bottom
+.   \}
+..
+.de C
+.   RT-PS-FACE
+.   ie '\*(.T'html' \{\
+.      GOTO-LEVEL 2
+.      HTML \\*[HTML-STRING]<li>
+.   \}
+.   el \{\
+.      nr CNUMBER +1
+.      CHECK-HIDDEN-C
+.      in 1i
+.      ti -(u;\w'\\*[LEVEL2]')
+\\*[LEVEL2]
+.      mk pg@header-bottom
+.   \}
+..
+.de D
+.   RT-PS-FACE
+.   ie '\*(.T'html' \{\
+.      GOTO-LEVEL 3
+.      HTML \\*[HTML-STRING]<li>
+.   \}
+.   el \{\
+.      in 1.5i
+.      ti -(u;\w'\\*[LEVEL3]')
+\\*[LEVEL3]
+.      mk pg@header-bottom
+.   \}
+..
+.de NEW-PAGE
+.   if '\*(.T'html' \{\
+.      br
+.      GOTO-LEVEL 0
+.      br
+.   \}
+.   nr BNUMBER 0
+.   nr CNUMBER 0
+..
+.de finish-title
+.   if !'\*(.T'html' .if !r ps4html \{\
+\s0\fP\m[]
+.   sp
+.   \}
+.   br
+.   di
+.   fi
+..
+.de T
+.   if !'\\$1''  @error "wrong use of .T it no longer uses an argument"
+.   NEW-PAGE
+.   VS
+.   if \\n[slide]>1 .if '\*(.T'html' .HR
+.   nr need-title 1
+.   in 0i
+.   di TITLE
+.   br
+.   ie '\*(.T'html' \{\
+.      DEVTAG-SH
+\\n[slide]\. \c
+.      nr slide +1
+.   \}
+.   el \{\
+.      if !r ps4html \{\
+\m[title_colour]\s26\fB\c
+.      \}
+.   \}
+.   it 1 finish-title
+..
+.de CHECK-LOGO
+.   in 0i
+.   if (\\n[write-logo] == 1) .if !'\*(.T'html' \{\
+.      ps 10
+.      vs 12
+.      CHECK-NEW-PAGE
+.      if (\\n[need-logo] == 1) .if !r ps4html \{\
+.         po -.5i
+.         PSPIC -L @TMAC_DIR@/gnu.eps 1i 1i
+.         po +.5i
+.         sp -1i
+.      \}
+.      sp
+.      rj 999
+.      \" check for topic
+.      if d TOPIC .TOPIC
+.      \" has user supplied 2nd argument?
+\s10\f1slide \\n[slide]
+.      br
+.      \"  is there a known name?
+.      ie d AUTHOR .AUTHOR
+.      el .nop \V[LOGNAME]
+.\" .      nop \n(dy/\n(mo/\n[year]
+.      rj 0
+.      sp +.1i
+.      nr write-logo 0
+.      RT-PS-FACE
+.  \}
+..
+.de CHECK-TITLE
+.   if \\n[need-title] \{\
+.      GOTO-LEVEL 0
+.      CHECK-LOGO
+.      GOTO-LEVEL 0
+.      BOX
+.      nr need-title 0
+.      DEVTAG-EO-H
+.      ft 1
+.   \}
+.   RT-PS-FACE
+..
+.de CHECK-NEW-PAGE
+.   if \\[need-new-page] \{\
+.       nr need-new-page 0
+.       sp
+.   \}
+..
+.de FOOTER
+.   GOTO-LEVEL 0
+.   nr need-title 1
+.   nr slide \\n[slide]+1
+.   nr need-new-page 1
+.   nr write-logo 1
+..
+.de END-INDENTATION
+.  if '\*(.T'html' \{\
+'     po 0i
+'     in 0i
+.  \}
+..
+.
+.de B-EMIT-FILENAME
+.  if '\*(.T'html' \{\
+.     rj 1
+.     nop \s[-4]\m[darkgreen]\f[CB]\\$1\f[R]\m[]\s[+4]
+.     sp
+.  \}
+.  if !'\*(.T'html' .if !r ps4html \{\
+.    sp -1
+.    rj 1
+.    nop \s[-5]\m[darkgreen]\s[-1]\f[CB]\\$1\f[R]\s[+5]\m[]\s[+1]
+.    sp
+.  \}
+..
+.
+.de B-EXAMPLE-BEGIN
+.  END-INDENTATION
+.
+.  B
+.  if !'\\$1'' .B-EMIT-FILENAME \\$1
+.
+.  nf
+.  if !'\*(.T'html' .if !r ps4html \{\
+.     sp -.5
+.     ps 14
+.     vs 16
+.     B1
+.  \}
+\fC\c
+..
+.
+.de B-EXAMPLE-END
+'  fi
+.  END-INDENTATION
+.  if !'\*(.T'html' .if !r ps4html .B2
+..
+.
+.
+.de B-EXAMPLE-FILE
+.  B-EXAMPLE-BEGIN \\$*
+..
+.
+.\"
+.\" PRG name [punctuation]
+.\"
+.de PRG
+.   nop \fC\s-1\\$1\s+1\fP\\$2
+..
+.\"
+.\" UNIX [punctuation]
+.\"
+.de UNIX
+.   nop \s-1UNIX\s+1\\$1
+..
+.\"
+.\" CAP [punctuation]
+.\"
+.
+.de CAP
+.   nop \s-1\\$1\s+1\\$2
+..
+.
+.de CMD
+.   nop \f[C]$ \f[CB]\\$*\f[C]
+..
+.
+.de CON
+.   nop \f[C]  \f[CB]\\$*\f[C]
+..
+.
+.de KEY
+.   nop \f[CB]\\$*\f[R]
+..
+.
+.de FINISH
+.  if '\*(.T'html' \{\
+.     sp
+.     in 0
+.     GOTO-LEVEL 0
+.     sp
+.     HR
+.     DEVTAG-SH 1
+.     nop Index
+.     DEVTAG-EO-H
+.     TAG "index"
+.     sp
+.     LK
+.     HR
+\fI\s-2This document was produced using
+.     URL http://groff.ffii.org/ groff-\n[.x].\n[.y] .\s0\fP
+.     HR
+.     HEAD "<link rel=""stylesheet"" type=""text/css"" href=""/css/gp.css"" />"
+.     HEAD "<link rel=""icon"" type=""image/png"" href=""/graphics/gnu-groff-mini.png"" />"
+.  \}
+.  da
+..
+.de localbp
+.   if (\\n[hiding] == 1) \{\
+.      br
+.      da
+.      nr hiding  0
+.   \}
+.   realbp
+..
+.\"
+.\"  @init - initialize the macroset
+.\"
+.de @init
+.   NHR
+.   \" a non-empty environment
+.   nr need-logo 0
+.   nr write-logo 1
+.   nr slide 1
+.   nr need-new-page 0
+.   ev ne
+\c
+.   ev
+.   ev nf
+'   nf
+.   ev
+.   wh -1i FOOTER
+.   em FINISH
+.   if r landscape .LANDSCAPE
+.\"
+.\"
+.ie '\*(.T'html' \{\
+.   rm bp
+.   ll  8i
+.   nr LL  8i
+.   URL "#index" Index
+.\}
+.el \{\
+.   als realbp bp
+.   rm bp
+.   als bp localbp
+.\}
+..
+.
+.de TS
+.  HTML-IMAGE-LEFT
+..
+.de TE
+.  HTML-IMAGE-END
+..
+.de EQ
+.  HTML-IMAGE-LEFT
+..
+.de EN
+.  HTML-IMAGE-END
+..
+.de PS
+.  HTML-IMAGE-LEFT
+..
+.de PE
+.  HTML-IMAGE-END
+..
+.
+.\" PREQ lecturename dependency1 dependency2 dependency3 ...
+.
+.de PREQ
+.  T
+.  nop Lecture: \\$1
+.  shift
+.  B
+.  ie '\\$*'' \{\
+.     nop There are no prerequisites for this lecture.
+.  \}
+.  el \{\
+.     nop Prerequisites for this lecture are:
+.     ds gp-first-pre \\$1
+.     while !'\\*[gp-first-pre]'' \{\
+.         ds gp-second-pre \\$2
+.         ds gp-third-pre \\$3
+.         ie '\\*[gp-third-pre]'' \{\
+.             nop \\*[gp-first-pre] and \\*[gp-second-pre].
+.             ds gp-first-pre
+.         \}
+.         el \{\
+.             nop \\*[gp-first-pre],
+.             shift
+.             ds gp-first-pre \\$1
+.         \}
+.     \}
+.  \}
+.  bp
+..
+.@init
