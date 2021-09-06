@@ -183,6 +183,9 @@ GPIO4        330 ohm    led    GND
 <PIN7> ------/\e/\e/\e/----|>|---<PIN14>
                     long  short
 .B-EXAMPLE-END
+.B
+normal caveats apply - be careful - you could damage your Pi-4 if you get
+this wrong
 .bp
 .T
 ledtest2 program
