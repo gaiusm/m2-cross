@@ -25,4 +25,4 @@ aarch64-linux-ld -T linker.ld \
     -L${HOME}/opt-gcc-12/cross/lib/gcc/aarch64-linux/12.0.0/m2/m2min -lm2min
 
 aarch64-linux-objcopy kernel.elf -O binary kernel.img
-sudo cp kernel.img /srv/tftp/2e4fd92a/kernel8.img
+# sudo cp kernel.img /srv/tftp/2e4fd92a/kernel8.img

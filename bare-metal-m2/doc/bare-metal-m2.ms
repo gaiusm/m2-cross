@@ -29,13 +29,18 @@ probably other websites were used as well, apologies if these are absent
 .B
 the following has been tested under Debian Buster building on an amd64 machine
 .B-EXAMPLE-BEGIN
-.CMD git clone
+.CMD git clone https://github.com/gaiusm/m2-cross
 .CMD mkdir build-m2-cross
+.CMD cd build-m2-cross
 .CMD ../m2-cross/configure
 .CMD make
 .B-EXAMPLE-END
 .B
-this will build and install the gm2, gcc, g++ cross compilers into
+this will build and install the
+.PRG gm2 ,
+.PRG gcc ,
+.PRG g++
+cross compilers into
 .PRG $HOME/opt-gcc-12/cross/bin
 (and
 .PRG $HOME/opt-gcc-12/cross/{lib,share} )
@@ -78,7 +83,7 @@ FROM SYSTEM IMPORT ADDRESS ;
 
 CONST
    GPIO_BASE    = 0FE200000H ;
-   GPIO_MAX     = LED_GPCLR ;
+   GPIO_MAX     = LED_GPCLR1 ;
    (* GPIO bitset offsets.  *)
    GPIO_GPFSEL  = 4 ;
    LED_GPSET1   = 8 ;
@@ -124,3 +129,33 @@ BEGIN
    END
 END ledtest.
 .B-EXAMPLE-END
+.bp
+.T
+Compile and link the application
+.B
+continue in the command line terminal and type:
+.B-EXAMPLE-BEGIN
+.CMD cd ../m2-cross/bare-metal-m2
+.CMD ./buildm2 ledtest
+.B-EXAMPLE-END
+.B
+this produces a
+.PRG kernel.img
+file which can be placed into the Raspberry Pi-4
+boot file
+.PRG kernel8.img
+.C
+the Raspberry Pi-4 will boot and run this image
+.bp
+.T
+Making the Raspberry Pi-4 boot the kernel8.img file
+.B
+the placing the
+.PRG kernel8.img
+into the sdcard is one approach which will work - albeit a slow way to
+develop
+.B
+another (much quicker) method is to configure a tftpserver to serve
+the
+.PRG kernel8.img
+file and configure the Rasbperry Pi-4 to boot using tftp

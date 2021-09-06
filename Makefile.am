@@ -33,10 +33,19 @@ help: force
 install: force
 	@echo "this package is currently hard coded to install into $(HOME)/opt-gcc-12"
 
-documentation: force
-	groff -mwww -mgp -M$(srcdir)/tmac $(srcdir)/bare-metal-m2/doc/bare-metal-m2.ms > bare-metal-m2.ps
-	ps2pdf bare-metal-m2.ps bare-metal-m2.pdf
+documentation: bare-metal-m2.pdf bare-metal-m2-html
+
+bare-metal-m2-html: $(srcdir)/bare-metal-m2/doc/bare-metal-m2.ms
 	groff -Thtml -mwww -mgp -M$(srcdir)/tmac $(srcdir)/bare-metal-m2/doc/bare-metal-m2.ms > bare-metal-m2.html
+
+bare-metal-m2.ps: $(srcdir)/bare-metal-m2/doc/bare-metal-m2.ms
+	groff -P-l -rlandscape=1 -mwww -mgp -M$(srcdir)/tmac $(srcdir)/bare-metal-m2/doc/bare-metal-m2.ms > bare-metal-m2.ps
+
+bare-metal-m2.pdf: bare-metal-m2.ps
+	gs -dBATCH -dNOPAUSE -sOutputFile=$@ -sDEVICE=pdfwrite \
+           -dAutoRotatePages=/None \
+           -c "<< /PageSize [612 792] /Orientation 3 >> setpagedevice" \
+           90 rotate 0 -612 translate -f $<
 
 release: force
 	pwd

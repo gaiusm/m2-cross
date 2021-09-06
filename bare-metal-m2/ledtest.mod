@@ -9,7 +9,7 @@ FROM SYSTEM IMPORT ADDRESS ;
 
 CONST
    GPIO_BASE    = 0FE200000H ;
-   GPIO_MAX     = LED_GPCLR ;
+   GPIO_MAX     = LED_GPCLR1 ;
    (* GPIO bitset offsets.  *)
    GPIO_GPFSEL  = 4 ;
    LED_GPSET1   = 8 ;
