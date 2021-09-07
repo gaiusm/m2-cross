@@ -29,7 +29,8 @@ probably other websites were used as well, apologies if these are absent
 .T
 Install dependancies (on Debian Buster)
 .B-EXAMPLE-BEGIN
-.CMD sudo apt install build-essential git gcc g++ flex groff texinfo
+.CMD sudo apt install build-essential git gcc g++ flex groff texinfo wget
+.CMD sudo apt install patch flex rsync libgmp3-dev python3-dev gawk bison
 .B-EXAMPLE-END
 .bp
 .B

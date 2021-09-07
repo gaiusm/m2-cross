@@ -5,7 +5,7 @@ extern void main( unsigned int r0, unsigned int r1, unsigned int atags );
 
 void _cstartup( unsigned int r0, unsigned int r1, unsigned int r2 )
 {
-#if 0
+#if 1
     /*__bss_start__ and __bss_end__ are defined in the linker script */
     int* bss = &__bss_start__;
     int* bss_end = &__bss_end__;
@@ -20,7 +20,10 @@ void _cstartup( unsigned int r0, unsigned int r1, unsigned int r2 )
             information on the c-library stubs
     */
     while (bss < bss_end)
-        *bss++ = 0;
+      {
+        *bss = 0;
+	bss++;
+      }
 
     /* We should never return from main ... */
     main (r0, r1, r2);
