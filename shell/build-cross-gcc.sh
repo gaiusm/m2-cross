@@ -1,21 +1,24 @@
 #! /bin/bash
+
+INSTALL_DIR=$HOME/opt-gcc-15/cross
+mkdir -p ${INSTALL_DIR}
+
 set -e
 trap 'previous_command=$this_command; this_command=$BASH_COMMAND' DEBUG
 trap 'echo FAILED COMMAND: $previous_command' EXIT
 
 #-------------------------------------------------------------------------------------------
 # This script will download packages for, configure, build and install a GCC cross-compiler.
-# Customize the variables (INSTALL_PATH, TARGET, etc.) to your liking before running.
+# Customize the variables (INSTALL_DIR, TARGET, etc.) to your liking before running.
 # If you get an error and need to resume the script from some point in the middle,
 # just delete/comment the preceding lines before running it again.
 #
 # See: http://preshing.com/20141119/how-to-build-a-gcc-cross-compiler
 #-------------------------------------------------------------------------------------------
 
-rm -rf $HOME/opt-gcc-12/cross
-mkdir -p $HOME/opt-gcc-12/cross
+rm -rf ${INSTALL_DIR}
+mkdir -p ${INSTALL_DIR}
 
-INSTALL_PATH=$HOME/opt-gcc-12/cross
 TARGET=aarch64-linux
 USE_NEWLIB=0
 LINUX_ARCH=arm64
@@ -31,20 +34,20 @@ MPC_VERSION=mpc-1.0.3
 ISL_VERSION=isl-0.18
 CLOOG_VERSION=cloog-0.18.1
 # GCC_CONFIGURATION_OPTIONS="-march=armv8-a+crc -mcpu=cortex-a72"
-export PATH=$INSTALL_PATH/bin:$PATH
+export PATH=$INSTALL_DIR/bin:$PATH
 
 # Download packages
 export http_proxy=$HTTP_PROXY https_proxy=$HTTP_PROXY ftp_proxy=$HTTP_PROXY
 wget -nc https://ftp.gnu.org/gnu/binutils/$BINUTILS_VERSION.tar.gz
 if [ "${GCC_VERSION}" = "git" ] ; then
-    if [ ! -f gcc-git-devel-modula2.tar.gz ] ; then
-	git clone git://gcc.gnu.org/git/gcc.git gcc-git-devel-modula2
-	cd gcc-git-devel-modula2
-	git checkout devel/modula-2
+    if [ ! -f gcc-git.tar.gz ] ; then
+	git clone git://gcc.gnu.org/git/gcc.git gcc-git
+	cd gcc-git
+	# git checkout branchname
 	echo "*** Note that this script downloads GCC prerequisites ***"
 	./contrib/download_prerequisites
 	cd ..
-	tar zcf gcc-git-devel-modula2.tar.gz gcc-git-devel-modula2
+	tar zcf gcc-git.tar.gz gcc-git
     fi
 else
     wget -nc https://ftp.gnu.org/gnu/gcc/$GCC_VERSION/$GCC_VERSION.tar.gz
@@ -109,7 +112,7 @@ done
 
 # Make symbolic links
 if [ "$GCC_VERSION" = "git" ] ; then
-    GCC_VERSION=gcc-git-devel-modula2
+    GCC_VERSION=gcc-git
 fi
 
 cd $GCC_VERSION
@@ -124,7 +127,7 @@ cd ..
 mkdir -p build-binutils
 cd build-binutils
 rm -rf *
-../$BINUTILS_VERSION/configure --prefix=$INSTALL_PATH --target=$TARGET $CONFIGURATION_OPTIONS
+../$BINUTILS_VERSION/configure --prefix=$INSTALL_DIR --target=$TARGET $CONFIGURATION_OPTIONS
 make $PARALLEL_MAKE
 make install
 cd ..
@@ -132,7 +135,7 @@ cd ..
 # Step 2. Linux Kernel Headers
 if [ $USE_NEWLIB -eq 0 ]; then
     cd $LINUX_KERNEL_VERSION
-    make ARCH=$LINUX_ARCH INSTALL_HDR_PATH=$INSTALL_PATH/$TARGET headers_install
+    make ARCH=$LINUX_ARCH INSTALL_HDR_PATH=$INSTALL_DIR/$TARGET headers_install
     cd ..
 fi
 
@@ -143,7 +146,7 @@ rm -rf *
 if [ $USE_NEWLIB -ne 0 ]; then
     NEWLIB_OPTION=--with-newlib
 fi
-../$GCC_VERSION/configure --prefix=$INSTALL_PATH --target=$TARGET --enable-languages=c,c++,m2 $CONFIGURATION_OPTIONS $NEWLIB_OPTION $GCC_CONFIGURATION_OPTIONS
+../$GCC_VERSION/configure --prefix=$INSTALL_DIR --target=$TARGET --enable-languages=c,c++,m2 $CONFIGURATION_OPTIONS $NEWLIB_OPTION $GCC_CONFIGURATION_OPTIONS
 make $PARALLEL_MAKE all-gcc
 make install-gcc
 cd ..
@@ -153,7 +156,7 @@ if [ $USE_NEWLIB -ne 0 ]; then
     mkdir -p build-newlib
     cd build-newlib
     rm -rf *
-    ../newlib-master/configure --prefix=$INSTALL_PATH --target=$TARGET $CONFIGURATION_OPTIONS
+    ../newlib-master/configure --prefix=$INSTALL_DIR --target=$TARGET $CONFIGURATION_OPTIONS
     make $PARALLEL_MAKE
     make install
     cd ..
@@ -162,12 +165,12 @@ else
     mkdir -p build-glibc
     cd build-glibc
     rm -rf *
-    ../$GLIBC_VERSION/configure --prefix=$INSTALL_PATH/$TARGET --build=$MACHTYPE --host=$TARGET --target=$TARGET --with-headers=$INSTALL_PATH/$TARGET/include $CONFIGURATION_OPTIONS libc_cv_forced_unwind=yes
+    ../$GLIBC_VERSION/configure --prefix=$INSTALL_DIR/$TARGET --build=$MACHTYPE --host=$TARGET --target=$TARGET --with-headers=$INSTALL_DIR/$TARGET/include $CONFIGURATION_OPTIONS libc_cv_forced_unwind=yes
     make install-bootstrap-headers=yes install-headers
     make $PARALLEL_MAKE csu/subdir_lib
-    install csu/crt1.o csu/crti.o csu/crtn.o $INSTALL_PATH/$TARGET/lib
-    $TARGET-gcc -nostdlib -nostartfiles -shared -x c /dev/null -o $INSTALL_PATH/$TARGET/lib/libc.so
-    touch $INSTALL_PATH/$TARGET/include/gnu/stubs.h
+    install csu/crt1.o csu/crti.o csu/crtn.o $INSTALL_DIR/$TARGET/lib
+    $TARGET-gcc -nostdlib -nostartfiles -shared -x c /dev/null -o $INSTALL_DIR/$TARGET/lib/libc.so
+    touch $INSTALL_DIR/$TARGET/include/gnu/stubs.h
     cd ..
 
     # Step 5. Compiler Support Library

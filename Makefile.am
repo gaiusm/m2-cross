@@ -18,8 +18,8 @@ DISTFILES = Makefile.in configure.ac configure \
 all: build documentation
 
 build: force
-	@echo "this package is currently hard coded to install into $(HOME)/opt-gcc-12"
-	@echo "press any key to destroy $(HOME)/opt-gcc-12 or ^C to abort"
+	@echo "this package is currently hard coded to install into $(HOME)/opt-gcc-15"
+	@echo "press any key to destroy $(HOME)/opt-gcc-15 or ^C to abort"
 	read ans
 	bash $(srcdir)/shell/build-cross-gcc.sh $(srcdir)
 
@@ -31,7 +31,7 @@ help: force
 	@echo "make all # build and install tool chain and build documentation"
 
 install: force
-	@echo "this package is currently hard coded to install into $(HOME)/opt-gcc-12"
+	@echo "this package is currently hard coded to install into $(HOME)/opt-gcc-15"
 
 documentation: bare-metal-m2.pdf bare-metal-m2-html
 
