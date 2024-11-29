@@ -198,6 +198,8 @@ am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
+armpi = @armpi@
+avr328p = @avr328p@
 bindir = @bindir@
 build_alias = @build_alias@
 builddir = @builddir@
@@ -232,7 +234,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUFFIXES = .c .mod .def .o .obj .lo .a .m .mxm
-GCCVERSION = 12.0.0
+GCCVERSION = 15.0.0
 DISTFILES = Makefile.in configure.ac configure \
             README.md version.c COPYING INSTALL \
             shell bare-metal-m2 gnu-linux
@@ -573,11 +575,15 @@ uninstall-am:
 
 all: build documentation
 
-build: force
-	@echo "this package is currently hard coded to install into $(HOME)/opt-gcc-15"
-	@echo "press any key to destroy $(HOME)/opt-gcc-15 or ^C to abort"
-	read ans
-	bash $(srcdir)/shell/build-cross-gcc.sh $(srcdir)
+build: buildavr buildarm
+
+@ARMPI_TRUE@buildarm: force
+@ARMPI_TRUE@	bash $(srcdir)/shell/build-cross-arm.sh $(srcdir) $(prefix)
+@ARMPI_FALSE@buildarm: force
+
+@AVR328P_TRUE@buildavr: force
+@AVR328P_TRUE@	bash $(srcdir)/shell/build-cross-avr.sh $(srcdir) $(prefix)
+@AVR328P_FALSE@buildavr: force
 
 help: force
 	@echo "this package knows about:"
@@ -602,6 +608,26 @@ bare-metal-m2.pdf: bare-metal-m2.ps
            -dAutoRotatePages=/None \
            -c "<< /PageSize [612 792] /Orientation 3 >> setpagedevice" \
            90 rotate 0 -612 translate -f $<
+
+check: checkarm checkavr
+
+@ARMPI_TRUE@checkarm: force
+@ARMPI_FALSE@checkarm: force
+
+@AVR328P_TRUE@checkavr: minavr.hex flashled328.hex
+
+@AVR328P_TRUE@minavr.hex: force
+@AVR328P_TRUE@	$(prefix)/bin/avr-gm2 -fscaffold-static -I$(prefix)/lib/gcc/avr/$(GCCVERSION)/m2/m2min/ -c -mmcu=atmega328p -g -Os -fno-exceptions $(srcdir)/bare-metal-m2/minavr.mod
+@AVR328P_TRUE@	$(prefix)/bin/avr-gcc -c -mmcu=atmega328p -g -Os $(srcdir)/bare-metal-m2/main.c -DM2MODULE_INIT=_M2_minavr_init -DM2MODULE_FINI=_M2_minavr_fini
+@AVR328P_TRUE@	$(prefix)/bin/avr-ld -o minavr.elf main.o minavr.o
+@AVR328P_TRUE@	$(prefix)/bin/avr-objcopy -R .eeprom -O ihex minavr.elf minavr.hex
+
+@AVR328P_TRUE@flashled328.hex: force
+@AVR328P_TRUE@	$(prefix)/bin/avr-gm2 -fscaffold-static -I$(prefix)/lib/gcc/avr/$(GCCVERSION)/m2/m2min/ -c -mmcu=atmega328p -g -Os -fno-exceptions $(srcdir)/bare-metal-m2/flashled328.mod
+@AVR328P_TRUE@	$(prefix)/bin/avr-gcc -c -mmcu=atmega328p -g -Os $(srcdir)/bare-metal-m2/main.c -DM2MODULE_INIT=_M2_flashled328_init -DM2MODULE_FINI=_M2_flashled328_fini
+@AVR328P_TRUE@	$(prefix)/bin/avr-ld -o flashled328.elf main.o flashled328.o
+@AVR328P_TRUE@	$(prefix)/bin/avr-objcopy -R .eeprom -O ihex flashled328.elf flashled328.hex
+@AVR328P_FALSE@checkavr: force
 
 release: force
 	pwd
